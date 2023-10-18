@@ -1,15 +1,57 @@
-Source: template-repository
-Section: unknown
+Source: golang-github-evanw-esbuild
+Section: golang
 Priority: optional
-Maintainer: Tsic404 <liuheng@deepin.org>
-Build-Depends: debhelper (>= 11)
-Standards-Version: 4.1.3
-Homepage: https://github.com/deepin-community/template-repository
-#Vcs-Browser: https://salsa.debian.org/debian/deepin-community-template-repository
-#Vcs-Git: https://salsa.debian.org/debian/deepin-community-template-repository.git
+Maintainer: Debian Go Packaging Team <team+pkg-go@tracker.debian.org>
+Uploaders: Anthony Fok <foka@debian.org>
+Rules-Requires-Root: no
+Build-Depends: debhelper-compat (= 13),
+               dh-sequence-golang,
+               golang-any (>= 2:1.13~),
+               golang-golang-x-sys-dev (>= 0.0~git20220715.c0bba94),
+               golang-src,
+Build-Depends-Arch: nodejs [!armel !hurd-i386 !powerpc],
+                    npm [!armel !hurd-i386 !powerpc],
+Testsuite: autopkgtest-pkg-go
+Standards-Version: 4.6.2
+Vcs-Browser: https://salsa.debian.org/go-team/packages/golang-github-evanw-esbuild
+Vcs-Git: https://salsa.debian.org/go-team/packages/golang-github-evanw-esbuild.git
+Homepage: https://github.com/evanw/esbuild
+XS-Go-Import-Path: github.com/evanw/esbuild
 
-Package: template-repository
+Package: golang-github-evanw-esbuild-dev
+Architecture: all
+Multi-Arch: foreign
+Depends: golang-golang-x-sys-dev (>= 0.0~git20220715.c0bba94),
+         ${misc:Depends}
+Description: extremely fast JavaScript bundler and minifier (library)
+ esbuild is a JavaScript bundler and minifier.  It packages up
+ JavaScript and TypeScript code for distribution on the web.
+ .
+ Why build another JavaScript build tool?  The current build tools for the web
+ are at least an order of magnitude slower than they should be.  It is hoped
+ that this project serves as an "existence proof" that JavaScript tooling
+ can be much, much faster.
+ .
+ This package contains the github.com/evanw/esbuild Go library.
+
+Package: esbuild
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Section: javascript
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: nodejs [!armel !hurd-i386 !powerpc]
+Provides: node-esbuild (= ${binary:Version}) [!armel !hurd-i386 !powerpc],
+          node-esbuild-wasm (= ${binary:Version}) [!armel !hurd-i386 !powerpc],
+          ${nodejs:Provides}
+Static-Built-Using: ${misc:Static-Built-Using}
+Built-Using: ${misc:Built-Using}
+Description: extremely fast JavaScript bundler and minifier (program)
+ esbuild is a JavaScript bundler and minifier.  It packages up
+ JavaScript and TypeScript code for distribution on the web.
+ .
+ Why build another JavaScript build tool?  The current build tools for the web
+ are at least an order of magnitude slower than they should be.  It is hoped
+ that this project serves as an "existence proof" that JavaScript tooling
+ can be much, much faster.
+ .
+ This package contains the esbuild binary.

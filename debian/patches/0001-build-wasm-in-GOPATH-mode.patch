@@ -1,0 +1,25 @@
+From: Shengjing Zhu <zhsj@debian.org>
+Date: Sun, 17 Jul 2022 01:06:40 +0800
+Subject: build wasm in GOPATH mode
+
+Forwarded: not-needed
+---
+ scripts/esbuild.js | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/esbuild.js b/scripts/esbuild.js
+index a715e38..fb2f80a 100644
+--- a/scripts/esbuild.js
++++ b/scripts/esbuild.js
+@@ -94,9 +94,9 @@ exports.buildWasmLib = async (esbuildPath) => {
+       '-o', path.join(npmWasmDir, 'esbuild.wasm'),
+       '-ldflags=-s -w', // This removes ~0.14mb of unnecessary WebAssembly code
+       '-trimpath',
+-      path.join(repoDir, 'cmd', 'esbuild'),
++      './cmd/esbuild',
+     ],
+-    { cwd: repoDir, stdio: 'inherit', env: { ...process.env, GOOS: 'js', GOARCH: 'wasm' } },
++    { cwd: path.join(repoDir, '_build/src/github.com/evanw/esbuild'), stdio: 'inherit', env: { ...process.env, GOOS: 'js', GOARCH: 'wasm' } },
+     err => err ? reject(err) : resolve()))
+ 
+   const libDir = path.join(npmWasmDir, 'lib')
