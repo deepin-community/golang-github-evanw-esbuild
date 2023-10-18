@@ -1,4 +1,55 @@
 #!/usr/bin/make -f
 
+include /usr/share/dpkg/architecture.mk
+
+export DH_GOLANG_INSTALL_EXTRA := \
+	internal/bundler_tests/snapshots \
+	internal/resolver/testExpectations.json
+
+# The Node.js magic was contributed by Yadd <yadd@debian.org> in Dec 2021;
+# see commit d7a16741f9df8c71f17a1ccdc3babbaa5505fdf5 for more information.
+
+export NPM_DIR := $(shell perl -e '\
+  my %mapping = ( \
+      amd64 => "x64", i386 => "ia32", \
+      arm64 => "arm64", armhf => "arm", \
+      mips64el => "mips64el", \
+      ppc64el => "ppc64", \
+      riscv64 => "riscv64", \
+      s390x => "s390x", \
+  ); \
+  print defined($$arch = $$mapping{$(DEB_HOST_ARCH)}) ? "\@esbuild/linux-$$arch" : ""; \
+')
+
+NODE_ESBUILD_PROVIDES := node-$(shell echo '$(NPM_DIR)' | sed -e 's/^@//; s/\//-/;')
+
 %:
-	dh $@
+	dh $@ --builddirectory=_build --buildsystem=golang
+
+ifneq ($(shell command -v node),)
+execute_after_dh_auto_build-arch:
+	ln -sf _build/bin/esbuild .
+	# Generate npm/esbuild/*
+	node scripts/esbuild.js ./esbuild --neutral
+	# Generate npm/esbuild-wasm/*
+	# See also set_go_env sub in dh-golang
+	GOPATH=$(CURDIR)/_build GOCACHE=$(CURDIR)/_build/go-build GO111MODULE=off GOPROXY=off \
+	    node scripts/esbuild.js ./esbuild --wasm
+
+execute_after_dh_auto_test-arch:
+	node -e 'require("./npm/esbuild")'
+endif
+
+ifneq ($(NPM_DIR),)
+execute_after_dh_install-arch:
+	install -d debian/esbuild/usr/lib/$(DEB_HOST_MULTIARCH)/nodejs/@esbuild
+	cp -a npm/$(NPM_DIR) debian/esbuild/usr/lib/$(DEB_HOST_MULTIARCH)/nodejs/@esbuild/
+	find debian/esbuild/usr/lib/$(DEB_HOST_MULTIARCH)/nodejs/ -name '*.md' -delete || true
+
+override_dh_link-arch:
+	dh_link --package=esbuild usr/bin/esbuild \
+	    usr/lib/$(DEB_HOST_MULTIARCH)/nodejs/$(NPM_DIR)/bin/esbuild
+
+override_dh_gencontrol-arch:
+	dh_gencontrol -- -Vnodejs:Provides="$(NODE_ESBUILD_PROVIDES)"
+endif
