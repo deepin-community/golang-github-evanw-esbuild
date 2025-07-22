@@ -17,6 +17,7 @@ export NPM_DIR := $(shell perl -e '\
       ppc64el => "ppc64", \
       riscv64 => "riscv64", \
       s390x => "s390x", \
+      sw64 => "sw64", \
   ); \
   print defined($$arch = $$mapping{$(DEB_HOST_ARCH)}) ? "\@esbuild/linux-$$arch" : ""; \
 ')
